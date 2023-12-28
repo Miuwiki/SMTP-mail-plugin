@@ -314,6 +314,7 @@ any Native_Miuwiki_SMTPSend(Handle plugin, int arg_num)
     
     // send
     curl_easy_perform_thread(curl, CURL_OnComplete);
+    g_PriateForward_OnSend.RemoveFunction(plugin, GetNativeFunction(2));
     g_PriateForward_OnSend.AddFunction(plugin, GetNativeFunction(2));
     return true;
 }
