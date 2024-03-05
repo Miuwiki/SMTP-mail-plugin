@@ -1,0 +1,50 @@
+"Games"
+{
+	"left4dead2"
+	{
+		"Addresses"
+		{
+			"Steam3Server"
+			{
+				"linux"
+				{
+					"signature" "Steam3Server"
+					"read" "4"
+				}
+			}
+		}
+
+		"Functions"
+		{
+			"CheckRestart"
+			{
+				"offset" "CheckRestart"
+				"hooktype"	"raw"
+				"this"		"ignore"
+				"return"	"bool"
+			}
+		}
+
+		"Offsets"
+		{
+			"CheckRestart"
+			{
+				"linux" "11" // 44 / 4 byte to index.
+			}
+		}
+
+		"Signatures"
+		{
+			"Steam3Server"
+			{
+				"library"	"engine"
+				"linux"		"@_ZL14s_Steam3Server"
+			}
+			"CBaseServer::CheckMasterServerRequestRestart"
+			{
+				"library"	"engine"
+				"linux"		"@_ZN11CBaseServer31CheckMasterServerRequestRestartEv"
+			}
+		}
+	}
+}
