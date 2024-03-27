@@ -88,7 +88,7 @@ public void OnPluginStart()
     cvar_verbose        = CreateConVar("l4d2_update_smtp_verbose", "0", "是否开启curl 的 debug 调试", _, true, 0.0);
     cvar_smtpusername   = CreateConVar("l4d2_update_smtp_username", "", "SMTP 服务器的用户名", FCVAR_PROTECTED);
     cvar_smtppassword   = CreateConVar("l4d2_update_smtp_password", "", "SMTP 服务器的用户密码", FCVAR_PROTECTED);
-    cvar_smtpreciver    = CreateConVar("l4d2_update_smtp_reciver", "1157201809@qq.com,471462218@qq.com", "需要发送给哪些邮箱, 每个邮箱都需要用\",\"结尾", FCVAR_PROTECTED);
+    cvar_smtpreciver    = CreateConVar("l4d2_update_smtp_reciver", "", "需要发送给哪些邮箱, 每个邮箱都需要用\",\"结尾", FCVAR_PROTECTED);
     cvar_smtpreciver.AddChangeHook(Hook_CvarChange);
 }
 
