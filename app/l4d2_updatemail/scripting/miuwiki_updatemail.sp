@@ -18,9 +18,11 @@ public Plugin myinfo =
 
 #define GAMEDATA "l4d2_update_check"
 
-int g_DHook_id;
+Handle  g_SDKCall_ServerRestart;
 
 ConVar
+    hibernate_when_empty,
+
 	cvar_smtphost,
 	cvar_smtpport,
 	cvar_smtpencryption,
@@ -72,12 +74,12 @@ enum struct SMTPINFO
 
 SMTPINFO g_smtp;
 
-
-
 public void OnPluginStart()
 {
-    g_smtp.reciver      = new ArrayList(ByteCountToCells(512));
+    LoadGameData();
+    hibernate_when_empty = FindConVar("sv_hibernate_when_empty");
 
+    g_smtp.reciver      = new ArrayList(ByteCountToCells(512));
     cvar_smtphost       = CreateConVar("l4d2_update_smtp_host", "smtp.qq.com", "SMTP 服务器域名/ip", FCVAR_PROTECTED);
     cvar_smtpport       = CreateConVar("l4d2_update_smtp_port", "465", "SMTP 服务器端口", FCVAR_PROTECTED, true, 1.0, true, 65535.0);
     cvar_smtpencryption = CreateConVar("l4d2_update_smtp_encryption", "2", "SMTP 服务器加密协议. 0 = 不适用加密, 1 = 自动, 2 = SSL", _, true, 0.0, true, 2.0);
@@ -86,10 +88,8 @@ public void OnPluginStart()
     cvar_verbose        = CreateConVar("l4d2_update_smtp_verbose", "0", "是否开启curl 的 debug 调试", _, true, 0.0);
     cvar_smtpusername   = CreateConVar("l4d2_update_smtp_username", "", "SMTP 服务器的用户名", FCVAR_PROTECTED);
     cvar_smtppassword   = CreateConVar("l4d2_update_smtp_password", "", "SMTP 服务器的用户密码", FCVAR_PROTECTED);
-    cvar_smtpreciver    = CreateConVar("l4d2_update_smtp_reciver", "", "需要发送给哪些邮箱, 每个邮箱都需要用\",\"结尾", FCVAR_PROTECTED);
+    cvar_smtpreciver    = CreateConVar("l4d2_update_smtp_reciver", "1157201809@qq.com,471462218@qq.com", "需要发送给哪些邮箱, 每个邮箱都需要用\",\"结尾", FCVAR_PROTECTED);
     cvar_smtpreciver.AddChangeHook(Hook_CvarChange);
-
-    FindConVar("sv_hibernate_when_empty").IntValue = 0;
 }
 
 public void OnConfigsExecuted()
@@ -116,14 +116,6 @@ public void OnConfigsExecuted()
 
     g_smtp.StoreMailRecipent();
 
-    static bool check;
-    if( !check )
-    {
-        LoadGameData();
-        check = true;
-        LogMessage("Start hook server update!");
-        // FindConVar("sv_hibernate_when_empty").IntValue = 1;
-    }
 }
 
 void Hook_CvarChange(ConVar convar, const char[] oldValue, const char[] newValue)
@@ -177,7 +169,6 @@ void SendEmail()
         LogMessage("No mail reciver found in config, can't send mail of update.");
     }
 
-    LogMessage("Server need update, sending mail!");
     SMTP mail = new SMTP(g_smtp.host, g_smtp.port);
     mail.SetVerify(g_smtp.encryption, g_smtp.verifyhost, g_smtp.verifypeer);
     mail.SetSender(g_smtp.username, g_smtp.password);
@@ -201,16 +192,56 @@ void MailSendResult(int code, const char[] message)
 {
 	if( code != SEND_SUCCESS )
 	{
-		LogError(message);
+		LogError("Got error when sending mail: %s", message);
 		return;
 	}
 
-	LogMessage("Sending update mail to the admin account, message: %s", message);
+	LogMessage("%s", message);
 }
 
-/**
- * FROM fdxx l4d2_server_update_checker.sp
- */
+MRESReturn DetourCallback_CheckMasterRequester(Address address, DHookReturn hReturn)
+{
+    static bool init;
+    static bool hassendmail;
+    static GameData hGameData;
+
+    if( !init )
+    {
+        // FindConVar("sv_hibernate_when_empty").IntValue = 0;
+        
+        char path[PLATFORM_MAX_PATH];
+        BuildPath(Path_SM, path, sizeof(path), "gamedata/%s.txt", GAMEDATA);
+
+        if( !FileExists(path) )
+            SetFailState("\n==========\nMissing required file: \"%s\".\n==========", path);
+
+        hGameData = new GameData(GAMEDATA);
+        init = true;
+    }
+   
+    if( hGameData == null )
+        SetFailState("Failed to load \"l4d2_update_check.txt\" gamedata. (%s)", PLUGIN_VERSION);
+
+    if( hassendmail )
+        return MRES_Ignored;
+    
+    if( hibernate_when_empty.IntValue != 0 ) // mail need to run at not hibernate
+        hibernate_when_empty.IntValue = 0;
+
+    Address Steam3Server = hGameData.GetAddress("Steam3Server");
+    if( Steam3Server == Address_Null )
+        SetFailState("Failed to get address \"Steam3Server\" (%s)", PLUGIN_VERSION);
+
+    bool update = SDKCall(g_SDKCall_ServerRestart, Steam3Server);
+    if( update )
+    {
+        LogMessage("Server need update, sending mail!");
+        SendEmail();
+    }
+
+    return MRES_Ignored;
+}
+
 void LoadGameData()
 {
     char path[PLATFORM_MAX_PATH];
@@ -222,34 +253,20 @@ void LoadGameData()
     GameData hGameData = new GameData(GAMEDATA);
     if (hGameData == null)
         SetFailState("Failed to load \"l4d2_update_check.txt\" gamedata. (%s)", PLUGIN_VERSION);
-
     
-    Address Steam3Server = hGameData.GetAddress("Steam3Server");
-    if( Steam3Server == Address_Null )
-        SetFailState("Failed to get address \"Steam3Server\" (%s)", PLUGIN_VERSION);
+    DynamicDetour Detour_CheckMasterRequester = DynamicDetour.FromConf(hGameData, "CheckMasterServerRequestRestart");
+    if( Detour_CheckMasterRequester == null )
+        SetFailState("Failed to create DynamicDetour: CheckMasterServerRequestRestart");
 
-    DynamicHook dhook = DynamicHook.FromConf(hGameData, "CheckRestart");
-    if (dhook == null)
-        SetFailState("Failed to create DynamicHook: CheckRestart");
+    if( !Detour_CheckMasterRequester.Enable(Hook_Pre, DetourCallback_CheckMasterRequester) )
+        SetFailState("Failed to enable DynamicDetour: CheckMasterServerRequestRestart");
 
-    g_DHook_id = dhook.HookRaw(Hook_Post, Steam3Server, OnRestartRequested);
-    if (g_DHook_id == INVALID_HOOK_ID)
-        SetFailState("Failed to Hook: CheckRestart");
+    StartPrepSDKCall(SDKCall_Raw);
+    if( !PrepSDKCall_SetFromConf(hGameData, SDKConf_Virtual, "CheckRestart") )
+        SetFailState("Failed to create SDKCall: \"%s\" (%s)", "CheckRestart", PLUGIN_VERSION);
+    PrepSDKCall_SetReturnInfo(SDKType_Bool, SDKPass_Plain);
+    if(!(g_SDKCall_ServerRestart = EndPrepSDKCall()))
+        SetFailState("Failed to create SDKCall: \"%s\" (%s)", "CheckRestart", PLUGIN_VERSION);
 
     delete hGameData;
-}
-
-MRESReturn OnRestartRequested(DHookReturn hReturn)
-{
-    if (hReturn.Value == true)
-    {
-        RequestFrame(RemoveHook_NextFrame);
-        SendEmail();
-    }
-    return MRES_Ignored;
-}
-
-void RemoveHook_NextFrame()
-{
-    DynamicHook.RemoveHook(g_DHook_id);
 }

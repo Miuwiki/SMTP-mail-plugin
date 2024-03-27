@@ -4,7 +4,7 @@
 #endif
 #define _miuwiki_smtp_included_
 
-#define SEND_SUCCESS 67
+#define SEND_SUCCESS 0
 
 enum Encryption
 {

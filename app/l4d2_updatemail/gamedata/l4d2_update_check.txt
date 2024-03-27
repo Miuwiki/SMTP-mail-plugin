@@ -23,6 +23,13 @@
 				"this"		"ignore"
 				"return"	"bool"
 			}
+			"CheckMasterServerRequestRestart"
+			{
+				"signature" "CBaseServer::CheckMasterServerRequestRestart"
+				"callconv"  "thiscall"
+				"this"		"address"
+				"return"	"int"
+			}
 		}
 
 		"Offsets"
