@@ -237,6 +237,7 @@ MRESReturn DetourCallback_CheckMasterRequester(Address address, DHookReturn hRet
     {
         LogMessage("Server need update, sending mail!");
         SendEmail();
+        hassendmail = true;
     }
 
     return MRES_Ignored;
