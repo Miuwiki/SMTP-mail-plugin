@@ -68,7 +68,7 @@ void MailSendResult(int code, const char[] message)
 * * *
 
 ### List Menu
-> *English introduction please view*  
+> *English introduction please view [this](https://forums.alliedmods.net/showthread.php?t=349912)*  
 提供附带说明的菜单, 简化二级菜单操作流程
 
 <table>
