@@ -1,0 +1,17 @@
+"Phrases"
+{
+	"GONEXT"
+	{
+        "en"    "Next Page"
+	}
+
+    "GOBACK"
+	{
+        "en"    "Previous Page"
+	}
+
+    "CANCEL"
+	{
+        "en"    "Cancel"
+	}
+}

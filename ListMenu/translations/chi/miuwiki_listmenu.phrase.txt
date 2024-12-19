@@ -1,0 +1,17 @@
+"Phrases"
+{
+	"GONEXT"
+	{
+		"chi"	"下一页"
+	}
+
+	"GOBACK"
+	{
+		"chi"	"上一页"
+	}
+
+	"CANCEL"
+	{
+		"chi"	"取消"
+	}
+}
