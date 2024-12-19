@@ -1,13 +1,27 @@
 # Sourcemod L4D2 开发向插件
 该仓库面向具有一定插件写作能力的玩家
 * * *
-### SMTP Mail(linux only)
+## SMTP Mail
 > *English introduction please view [this](https://forums.alliedmods.net/showthread.php?p=2815083#post2815083)*  
 这是一个基于sm curl拓展实现发送邮件的插件, 旨在简化curl拓展提供的api. app文件夹提供基于该插件的额外功能  
 curl拓展作者以及后续fork 请到上方英文介绍页底部鸣谢寻找.
+<table>
+    <tr>
+        <td>windows</td>
+        <td>x</td>
+        <td>windows</td>
+        <td>√</td>
+    </tr>
+</table>
+
 #### 接口使用: 
-```sourcepawn
-Action Cmd_Status(int client, int args)
+<details>
+
+<summary>详细信息</summary>
+
+```sourcepawn  
+
+Action Cmd_Status(int client, int args) 
 {
     if( client < 1 || client > MaxClients || !IsClientInGame(client) || IsFakeClient(client) )
         return Plugin_Handled;
@@ -27,6 +41,7 @@ Action Cmd_Status(int client, int args)
 
     return Plugin_Handled;
 }
+
 void MailSendResult(int code, const char[] message)
 {
     if( code != SEND_SUCCESS )
@@ -36,8 +51,10 @@ void MailSendResult(int code, const char[] message)
     }
 
     LogMessage(message);
-}  
+}
 ```
+</details>
+
 #### 已确认问题: 
 + 仅支持 linux 服务器, 因为目前 curl 拓展只有linux版本的.
 + 请注意curl拓展是否生效, curl拓展不生效请在控制台输入 sm exts load curl 检查不生效原因, 并自行查找解决办法.
@@ -51,9 +68,23 @@ void MailSendResult(int code, const char[] message)
 * * *
 
 ### List Menu
-> *English introduction please view [this](https://forums.alliedmods.net/showthread.php?p=2815083#post2815083)*
+> *English introduction please view [this](https://forums.alliedmods.net/showthread.php?p=2815083#post2815083)*  
 提供附带说明的菜单, 简化二级菜单操作流程
+
+<table>
+    <tr>
+        <td>windows</td>
+        <td>√</td>
+        <td>windows</td>
+        <td>√</td>
+    </tr>
+</table>
+
 #### 接口使用: 
+<details>
+
+<summary>详细信息</summary>
+
 ```sourcepawn
 Action Cmd_ShowTest(int client, int args)
 {
@@ -102,6 +133,8 @@ void ListMenuHandler_ShowData(int client, int index[2], ListData item)
                         index[0], index[1], item.name, item.description,);
 }
 ```
+</details>
+
 #### 已确认问题: 
 + 暂无
 #### 可选插件说明:
