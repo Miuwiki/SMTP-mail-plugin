@@ -86,53 +86,65 @@ void MailSendResult(int code, const char[] message)
 <summary>详细信息</summary>
 
 ```sourcepawn
+static char string[][][] = {
+	{"枪械", "选择一种主要枪械"},
+	{"近战", "可选择手枪或者近战"},
+	{"投掷物", "火瓶, 胆汁, 拍棒"},
+	{"医疗物品", "医疗包, 电击器"},
+	{"药品", "选择针, 止痛药"},
+	{"buff", "选择一种buff"}
+};
+
 Action Cmd_ShowTest(int client, int args)
 {
-    ListMenu listmenu = ListMenu(ListMenuHandler_ShowData);
-    char title[128], name[128], description[128];
+	ListMenu listmenu = ListMenu(ListMenuHandler_ShowData);
+	char title[128], name[128], description[128];
 
-    Format(title, sizeof(title), "this is my test title");
-    listmenu.SetTitle(title);
-    
-    int count = GetCmdArgInt(1);
-    count = count == 0 ? 3 : count;
+	Format(title, sizeof(title), "测试菜单\n——————————————");
+	listmenu.SetTitle(title);
 
-    for(int i = 1; i <= count; i++)
-    {
-        FormatEx(name, sizeof(name), "name %d", i);
-        FormatEx(description, sizeof(description), "description %d", i);
+	for(int i = 0; i < sizeof(string); i++)
+	{
+		FormatEx(name, sizeof(name), "%s", string[i][0]);
+		FormatEx(description, sizeof(description), "%s", string[i][1]);
 
-        listmenu.AddItem(name, description);
-    }
+		listmenu.AddItem(name, description);
+	}
 
-    listmenu.Send(client, 20);
-    return Plugin_Handled;
+	listmenu.Send(client, 20);
+
+	return Plugin_Handled;
 }
 
 void ListMenuHandler_ShowData(int client, int index[2], ListData item)
 {
-    if( client < 1 || client > MaxClients || !IsClientInGame(client) )
-        return;
-    
-    PrintToChatAll("item passdata handle %d", item.passdata);
-    if( item.passdata != INVALID_HANDLE )
-    {
-        // StringMap can be use here.
-        // e.x: item.passdata.GetValue();
-    }
-    else
-    {
-        PrintToChatAll("no data pass by item");
-    }
+	if( client < 1 || client > MaxClients || !IsClientInGame(client) )
+		return;
+	
+	PrintToChatAll("item passdata handle %d", item.passdata);
+	int passdata[2];
+	if( item.passdata != INVALID_HANDLE )
+	{
+		item.passdata.GetValue("key1", passdata[0]);
+		item.passdata.GetValue("key2", passdata[1]);
+	}
+	else
+	{
+		PrintToChatAll("no data pass by item");
+	}
 
-    PrintToChat(client, "you select item index %d\n /
-                        data index %d\n /
-                        item_name: %s\n /
-                        item_description: %s\n /
-                        passdata: %d-%d", 
-                        index[0], index[1], item.name, item.description,);
+	PrintToChat(client, "you select item index %d\ndata index %d\nitem_name: %s\nitem_description: %s\npassdata: %d-%d", 
+						index[0], index[1], item.name, item.description, passdata[0], passdata[1]);
 }
 ```
+</details>
+
+<details>
+
+<summary>效果图</summary>
+
+![图片描述](./__image/listmenu.png)
+
 </details>
 
 #### 已确认问题: 
