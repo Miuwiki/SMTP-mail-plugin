@@ -2,8 +2,9 @@
 该仓库面向具有一定插件写作能力的玩家
 * * *
 ### SMTP Mail(linux only)
-> *English introduction please view [this](https://forums.alliedmods.net/showthread.php?p=2815083#post2815083)*
-这是一个基于sm curl拓展实现发送邮件的插件, 旨在简化curl拓展提供的api. curl拓展作者以及后续fork 请到上方英文介绍页底部鸣谢寻找
+> *English introduction please view [this](https://forums.alliedmods.net/showthread.php?p=2815083#post2815083)* 
+这是一个基于sm curl拓展实现发送邮件的插件, 旨在简化curl拓展提供的api. curl拓展作者以及后续fork 请到上方英文介绍页底部鸣谢寻找. 
+app文件夹提供基于该插件的额外功能
 #### 接口使用: 
 ```sourcepawn
 Action Cmd_Status(int client, int args)
